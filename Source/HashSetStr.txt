@@ -1,0 +1,221 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+
+size_t defaultHashFunc(const string& s)
+{
+    size_t r = 0;
+    for (auto c : s)
+    {
+        r = 31 * r + c;
+    }
+    return r;
+}
+
+class HashSetStr
+{
+    //typedef size_t (*HashFunc)(const std::string& s);
+    
+    using HashFunc = std::size_t (*)(const std::string& s);
+    
+    struct Node
+    {
+        std::string data;
+        Node* next;
+        Node(const std::string& aData, Node* aNext)
+            : data(aData)
+            , next(aNext)
+        {
+        }
+    };
+    
+    std::vector<Node*> buckets;
+    std::size_t length;
+    HashFunc hf;
+    
+    void rehash()
+    {
+    vector<Node*> newBuckets(buckets.size() * 2 + 1);
+    for (size_t i = 0; i < buckets.size(); ++i)
+    {
+        for (Node* curr = buckets[i]; curr;)
+        {
+            size_t index = hf(curr->data) % newBuckets.size();
+            Node* t = curr->next;
+            curr->next = newBuckets[index];
+            newBuckets[index] = curr;
+            curr = t;
+        }
+    }
+    buckets.swap(newBuckets);
+ }
+    
+public:
+    HashSetStr(std::size_t initBucketsSize = 3, HashFunc aHF = defaultHashFunc)
+        : buckets(initBucketsSize, nullptr)
+        , length(0)
+        , hf(aHF)
+    {
+    }
+
+    HashSetStr(const HashSetStr& other) = delete;
+    HashSetStr& operator=(const HashSetStr& other) = delete;
+
+    ~HashSetStr()
+{
+    for (size_t i = 0; i < buckets.size(); ++i)
+    {
+        while (buckets[i])
+        {
+            Node* t = buckets[i];
+            buckets[i] = buckets[i]->next;
+            delete t;
+        }
+    }
+}
+    
+    std::size_t size() const
+    {
+        return length;
+    }
+    
+    std::size_t bucketsCount() const
+    {
+        return buckets.size();
+    }
+    
+    HashFunc getHashFunc() const
+    {
+        return hf;
+    }
+    
+    
+    bool insert(const string& e)
+{
+    if (buckets.size() == length)
+    {
+        rehash();
+    }
+
+    size_t index = hf(e) % buckets.size();
+
+    for (Node* p = buckets[index]; p; p = p->next)
+    {
+        if (p->data == e)
+        {
+            return false;
+        }
+    }
+
+    buckets[index] = new Node(e, buckets[index]);
+
+    ++length;
+
+    return true;
+}
+    
+    void debugPrint() const
+{
+    for (size_t i = 0; i < buckets.size(); ++i)
+    {
+        cout << i << ":";
+        for (Node* p = buckets[i]; p; p = p->next)
+        {
+            cout << " " << p->data;
+        }
+        cout << "\n";
+    }
+}
+
+bool find(const std::string& e) const
+{
+    size_t index = hf(e) % buckets.size();
+
+    for (Node* p = buckets[index]; p; p = p->next)
+    {
+        if (p->data == e)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+bool erase(const std::string& e)
+{
+    size_t index = hf(e) % buckets.size();
+
+    Node* prev = nullptr;
+    for (Node* curr = buckets[index]; curr; curr = curr->next)
+    {
+        if (curr->data == e)
+        {
+            if (prev == nullptr)
+            {
+                buckets[index] = curr->next;
+            }
+            else
+            {
+                prev->next = curr->next;
+            }
+            delete curr;
+            --length;
+            return true;
+        }
+        prev = curr;
+    }
+
+    return false;
+}
+};
+
+int main()
+{
+    HashSetStr words(11);
+    auto hf = words.getHashFunc();
+    
+    string line;
+    while (getline(cin, line))
+    {
+        istringstream sinp(line);
+        string cmd;
+        sinp >> cmd;
+        if (cmd == "#")
+        {
+            words.debugPrint();
+        }
+        else if (cmd == "+")
+        {
+            string word;
+            sinp >> word;
+            cout << "hash value: " << hf(word) << endl;
+            cout << "bucket's index: " << hf(word) % words.bucketsCount() << endl; 
+            cout << (words.insert(word) ? "OK" : "already in the set") << endl;
+        }
+        else if (cmd == "-")
+        {
+            string word;
+            sinp >> word;
+            cout << "hash value: " << hf(word) << endl;
+            cout << "bucket's index: " << hf(word) % words.bucketsCount() << endl; 
+            cout << (words.erase(word) != 0 ? "OK" : "not in the list") << endl;
+        }
+        else if (cmd == "?")
+        {
+            string word;
+            sinp >> word;
+            cout << "hash value: " << hf(word) << endl;
+            cout << "bucket's index: " << hf(word) % words.bucketsCount() << endl; 
+            cout << (words.find(word) ? "found" : "not found") << endl;
+        }
+        else
+        {
+            cout << "unknown command" << endl;
+        }
+    }
+}

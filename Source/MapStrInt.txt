@@ -1,0 +1,134 @@
+#include <iostream>
+#include <string>
+#include <utility>
+
+using namespace std;
+
+class MapStrInt
+{
+public:
+
+    MapStrInt()
+        : root(nullptr), length(0)
+    {
+    }
+
+    ~MapStrInt()
+    {
+        clear();
+    }
+
+    int& operator[](const string& k)
+{
+    Node* pred = nullptr;
+    Node* curr = root;
+    bool isLeft = false;
+    while (curr != nullptr)
+    {
+        pred = curr;
+        if (k < curr->data.first)
+        {
+            isLeft = true;
+            curr = curr->left;
+        }
+        else if (curr->data.first < k)
+        {
+            isLeft = false;
+            curr = curr->right;
+        }
+        else
+        {
+            return curr->data.second;
+        }
+    }
+
+    Node* t = new Node(k, 0, nullptr, nullptr);
+    
+    ++length;
+    
+    if (root == nullptr)
+    {
+        root = t;
+    }
+    else if (isLeft)
+    {
+        pred->left = t;
+    }
+    else
+    {
+        pred->right = t;
+    }
+    
+    return t->data.second;
+}
+
+
+    void printInOrder() const
+    {
+        printInOrder(root);
+    }
+
+    void clear()
+    {
+        clear(root);
+        length = 0;
+    }
+
+    int size() const
+    {
+        return length;
+    }
+
+private:
+
+    struct Node
+    {
+        std::pair<std::string, int> data;
+        Node* left;
+        Node* right;
+
+        Node(const std::string& k, int v, Node* aLeft, Node* aRight)
+            : data(k, v), left(aLeft), right(aRight)
+        {
+        }
+    };
+
+    Node* root;
+    int length;
+
+    void printInOrder(Node* r) const
+{
+    if (r)
+    {
+        printInOrder(r->left);
+        cout << r->data.first << ": " << r->data.second << endl;
+        printInOrder(r->right);
+    }
+}
+
+void clear(Node* r)
+{
+    if (r)
+    {
+        clear(r->left);
+        clear(r->right);
+        delete r;
+    }
+}
+
+};
+
+int main()
+{
+    MapStrInt m;
+    
+    string w;
+    while (cin >> w)
+    {
+        ++m[w];
+    }
+    
+    m.printInOrder();
+    
+    return 0;
+}

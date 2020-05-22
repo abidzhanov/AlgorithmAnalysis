@@ -1,0 +1,76 @@
+// map (dict, associative array)
+// collection of pairs (key, value) with unique keys
+
+#include <iostream>
+#include <map>
+#include <string>
+#include <unordered_map>
+
+using namespace std;
+
+int main()
+{
+    pair<string, int> p1;
+    cout << p1.first << ", " << p1.second << endl;
+    
+    
+    pair<string, int> p2("hello", 42);
+    cout << p2.first << ", " << p2.second << endl;
+    
+    
+    auto p3 = make_pair("hello", 42);
+    cout << p3.first << ", " << p3.second << endl;
+    
+    pair<string, int> p4 = {"hello"s, 42};
+    cout << p4.first << ", " << p4.second << endl;
+
+
+    unordered_map<string, int> m1;
+    m1.insert({"hello", 42});
+    m1.insert({"world", 42});
+    
+    m1.emplace("C++", 1979);
+    m1.emplace("C", 1973);
+    m1.emplace("Fortran", 19);
+    
+    for (const auto& p : m1)
+    {
+        cout << p.first << ": " << p.second << endl;
+    }
+    
+    
+    map<string, int> m2 = {{"C++", 1979}, {"Java", 1995}, {"C#", 2000}};
+    string lang;
+    while (cin >> lang)
+    {
+        auto it = m2.find(lang);
+        if (it != m2.end())
+        {
+            cout << "value: " <<  it->second << endl;
+        }
+        else
+        {
+            cout << lang << " not found" << endl;
+        }
+    }
+    
+    cout << (m2.erase("Java") ? "YES!!!" : "Noooo!!!!") << endl;
+    
+    m2["C++"] = 1983;
+    
+    for (const auto& p : m2)
+    {
+        cout << p.first << ": " << p.second << endl;
+    }
+    
+    cout << m2["C#"] << endl;
+    cout << m2["Java"] << endl;
+    m2["Scratch"] = 2005;
+    
+    cout << m2.size() << endl;
+    for (const auto& p : m2)
+    {
+        cout << p.first << ": " << p.second << endl;
+    }
+    
+}

@@ -1,0 +1,281 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+class BSTreeInt
+{
+    struct Node
+    {
+        int data;
+        Node* lft;
+        Node* rgt;
+        Node(int aData, Node* aLft, Node* aRgt)
+            : data(aData)
+            , lft(aLft)
+            , rgt(aRgt)
+        {
+        }
+    };
+
+    Node* root;
+    int sz;
+    
+    void eraseLeaf(Node* curr, Node* prev, bool isLeft)
+{
+    if (curr == root)
+    {
+        delete root;
+        root = nullptr;
+    }    
+    else if (isLeft)
+    {
+        prev->lft = nullptr;
+        delete curr;
+    }
+    else
+    {
+        prev->rgt = nullptr;
+        delete curr;
+    }
+    --sz;
+}
+
+void eraseNodeWithOneChild(Node* curr, Node* prev, bool isLeft)
+{
+    if (curr == root)
+    {
+        if (curr->lft)
+        {
+            root = root->lft; 
+        }
+        else
+        {
+            root = root->rgt;
+        }
+    }
+    else
+    {
+        if (isLeft)
+        {
+            prev->lft = curr->lft ? curr->lft :curr->rgt;
+        }
+        else
+        {
+            prev->rgt = curr->lft ? curr->lft :curr->rgt;
+        }
+    }
+    --sz;
+    delete curr;
+}
+
+void eraseNodeWithTwoChildren(Node* curr, Node* prev, bool isLeft)
+{
+    Node* temp = curr;
+    prev = curr;
+    curr = curr->lft;
+    while (curr->rgt)
+    {
+        prev = curr;    
+        curr = curr->rgt;
+    }
+    temp->data = curr->data;
+    if (curr->lft)
+    {
+        eraseNodeWithOneChild(curr, prev, false);
+    }
+    else
+    {
+        eraseLeaf(curr, prev, false);
+    }
+}
+
+string toStr(Node* r) const
+{
+    string result;
+    if (r)
+    {
+        result += toStr(r->lft);
+        result += " " + to_string(r->data);
+        result += toStr(r->rgt);
+    }
+    return result;
+}
+
+
+
+void clear(Node* r)
+{
+    if (r)
+    {
+        clear(r->lft);
+        clear(r->rgt);
+        delete r;
+        --sz;
+    }
+}
+
+	
+
+public:
+
+    BSTreeInt()
+        : root(nullptr)
+        , sz(0)
+    {
+    }
+    
+    ~BSTreeInt() 
+    {
+        clear();
+    }
+
+    std::string toStr() const
+    {
+        return toStr(root);
+    }
+    
+    int size() const
+    {
+        return sz;
+    }
+
+bool insert(int k)
+{
+    if (root == nullptr)
+    {
+        root = new Node(k, nullptr, nullptr);
+        ++sz;
+        return true;
+    }
+    
+    bool isLeft = true;
+    Node* prev = nullptr;
+    Node* curr = root;
+    while (curr != nullptr)
+    {
+        if (curr->data < k)
+        {
+            isLeft = false;
+            prev = curr;
+            curr = curr->rgt;
+        }
+        else if (k < curr->data)
+        {
+
+            isLeft = true;
+            prev = curr;
+            curr = curr->lft;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    
+    if (isLeft)
+    {
+        prev->lft = new Node(k, nullptr, nullptr);
+    }
+    else
+    {
+        prev->rgt = new Node(k, nullptr, nullptr);
+    }
+    ++sz;
+    
+    return true;
+}
+
+bool find(int k) const
+{
+
+    Node* curr = root;
+    while (curr)
+    {
+        if (k < curr->data)
+        {
+            curr = curr->lft;
+        }
+        else if (curr->data < k)
+        {
+            curr = curr->rgt;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool erase(int k)
+{
+    bool isLeft = true;
+    Node* prev = nullptr;
+    Node* curr = root;
+    while (curr)
+    {
+        if (k < curr->data)
+        {
+            isLeft = true;
+            prev = curr;
+            curr = curr->lft;
+        }
+        else if (curr->data < k)
+        {
+            isLeft = false;
+            prev = curr;
+            curr = curr->rgt;
+        }
+        else
+        {
+            break;
+        }
+    }
+    
+    if (curr == nullptr)
+    {
+        return false;
+    }
+    
+    if (curr->lft == nullptr && curr->rgt == nullptr)
+    {
+        eraseLeaf(curr, prev, isLeft);        
+    }
+    else if (curr->lft && curr->rgt)
+    {
+        eraseNodeWithTwoChildren(curr, prev, isLeft);
+    }
+    else 
+    {
+        eraseNodeWithOneChild(curr, prev, isLeft);
+    }
+    
+    return true;
+}
+  
+    
+    void clear()
+    {
+        clear(root);
+    }
+
+
+    
+};
+
+int main() 
+{
+    BSTreeInt tree;
+    tree.insert(50);
+    tree.insert(25);
+    tree.insert(70);
+    tree.insert(15);
+    tree.insert(40);
+    tree.insert(60);
+    tree.insert(90);
+    cout << tree.toStr() << endl;
+    
+
+}
